@@ -39,7 +39,8 @@ def download_data_cli(args):
     else:
         raise RuntimeError()
     download_data(
-        task_names=task_names, output_base_path=output_base_path,
+        task_names=task_names,
+        output_base_path=output_base_path,
     )
 
 
@@ -47,8 +48,13 @@ def download_data(task_names, output_base_path):
     task_data_base_path = py_io.create_dir(output_base_path, "data")
     task_config_base_path = py_io.create_dir(output_base_path, "configs")
 
-    assert set(task_names).issubset(SUPPORTED_TASKS)
-
+    try:
+        assert set(task_names).issubset(SUPPORTED_TASKS)
+    except AssertionError:
+        raise ValueError(
+            f"Tasks {set(task_names) - SUPPORTED_TASKS} unsupported,"
+            f'must be of [{",".join(SUPPORTED_TASKS)}]'
+        )
     # Download specified tasks and generate configs for specified tasks
     for i, task_name in enumerate(task_names):
         task_data_path = os.path.join(task_data_base_path, task_name)
@@ -73,7 +79,7 @@ def download_data(task_names, output_base_path):
             )
         else:
             raise KeyError()
-        print(f"Downloaded and generated configs for '{task_name}' ({i+1}/{len(task_names)})")
+        print(f"Downloaded and generated configs for '{task_name}' ({i + 1}/{len(task_names)})")
 
 
 def main():
