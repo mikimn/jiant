@@ -61,7 +61,7 @@ class BatchMixin(ExtendedDataClassMixin):
 
 
 class BaseExample(ExtendedDataClassMixin):
-    def tokenize(self, tokenizer):
+    def tokenize(self, tokenizer, task=None):
         raise NotImplementedError
 
 

@@ -1,6 +1,9 @@
+import csv
 import json
 import logging
 import os
+import sys
+
 import pandas as pd
 import re
 import shutil
@@ -59,6 +62,10 @@ def download_task_data_and_write_config(task_name: str, task_data_path: str, tas
         )
     elif task_name == "winogrande":
         download_winogrande_data_and_write_config(
+            task_name=task_name, task_data_path=task_data_path, task_config_path=task_config_path
+        )
+    elif task_name == "hans":
+        download_hans_data_and_write_config(
             task_name=task_name, task_data_path=task_data_path, task_config_path=task_config_path
         )
     else:
@@ -735,6 +742,65 @@ def download_winogrande_data_and_write_config(
                 "val_labels": os.path.join(task_data_path, "dev-labels.lst"),
                 "test": os.path.join(task_data_path, "test.jsonl"),
             },
+            "name": task_name,
+        },
+        path=task_config_path,
+    )
+
+
+def download_hans_data_and_write_config(
+    task_name: str, task_data_path: str, task_config_path: str
+):
+    original_dataset_dir = os.path.join(task_data_path, "original")
+    original_dataset_path = os.path.join(original_dataset_dir, "heuristics_evaluation_set.tsv")
+    os.makedirs(original_dataset_dir, exist_ok=True)
+    download_utils.download_file(
+        "https://raw.githubusercontent.com/tommccoy1/hans/master/heuristics_evaluation_set.txt",
+        original_dataset_path,
+    )
+
+    def read_tsv(input_file, quote_char=None):
+        """Reads a tab separated value file."""
+        with open(input_file, "r", encoding="utf-8-sig") as f:
+            reader = csv.reader(f, delimiter="\t", quotechar=quote_char)
+            all_lines = []
+            for ln in reader:
+                all_lines.append(ln)
+            return all_lines
+
+    print(os.path.exists(original_dataset_path))
+    lines = read_tsv(original_dataset_path)
+    types = ["lexical_overlap", "constituent", "subsequence"]
+    lines_types = [[], [], []]
+    first_line = None
+    for i, line in enumerate(lines):
+        if i == 0:
+            first_line = "\t".join(line)
+        if line[8] == types[0]:
+            lines_types[0].append("\t".join(line))
+        elif line[8] == types[1]:
+            lines_types[1].append("\t".join(line))
+        elif line[8] == types[2]:
+            lines_types[2].append("\t".join(line))
+
+    # Write the split files.
+    paths = {}
+    for i, heuristic in enumerate(types):
+        data_dir = os.path.join(task_data_path, heuristic)
+        os.makedirs(data_dir, exist_ok=True)
+        filename = f"test-{heuristic}"
+        filepath = os.path.join(data_dir, filename + ".tsv")
+        paths[filename] = filepath
+        lines = [first_line] + lines_types[i]
+        with open(filepath, "w") as f:
+            for line in lines:
+                f.write(line + "\n")
+
+    paths["test"] = original_dataset_path
+    py_io.write_json(
+        data={
+            "task": task_name,
+            "paths": paths,
             "name": task_name,
         },
         path=task_config_path,

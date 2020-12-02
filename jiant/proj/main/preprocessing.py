@@ -179,7 +179,7 @@ def tokenize_and_featurize(
             )
     else:
         data_rows = [
-            example.tokenize(tokenizer).featurize(tokenizer, feat_spec)
+            example.tokenize(tokenizer, task=task).featurize(tokenizer, feat_spec)
             for example in maybe_tqdm(examples, desc="Tokenizing", verbose=verbose)
         ]
     return data_rows
@@ -213,4 +213,4 @@ def iter_chunk_tokenize_and_featurize(
                 set_type=phase,
             )
         else:
-            yield example.tokenize(tokenizer).featurize(tokenizer, feat_spec)
+            yield example.tokenize(tokenizer, task=task).featurize(tokenizer, feat_spec)

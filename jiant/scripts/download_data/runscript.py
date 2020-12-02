@@ -1,5 +1,7 @@
 import os
 import argparse
+import sys
+sys.path.append(os.path.join(os.getcwd(), 'jiant'))
 
 import jiant.utils.python.io as py_io
 import jiant.scripts.download_data.dl_datasets.hf_datasets_tasks as hf_datasets_tasks_download
