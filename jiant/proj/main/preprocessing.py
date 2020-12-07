@@ -59,10 +59,10 @@ def smart_truncate(dataset: torch_utils.ListDataset, max_seq_length: int, verbos
 
 
 def smart_truncate_cache(
-    cache: shared_caching.ChunkedFilesDataCache,
-    max_seq_length: int,
-    max_valid_length: int,
-    verbose: bool = False,
+        cache: shared_caching.ChunkedFilesDataCache,
+        max_seq_length: int,
+        max_valid_length: int,
+        verbose: bool = False,
 ):
     for chunk_i in maybe_trange(cache.num_chunks, desc="Smart truncate chunks", verbose=verbose):
         chunk = torch.load(cache.get_chunk_path(chunk_i))
@@ -100,7 +100,7 @@ def smart_truncate_datum(datum, max_seq_length, max_valid_length):
 
 
 def convert_examples_to_dataset(
-    task, examples: list, tokenizer, feat_spec: FeaturizationSpec, phase: str, verbose=False
+        task, examples: list, tokenizer, feat_spec: FeaturizationSpec, phase: str, verbose=False
 ):
     """Create ListDataset containing DataRows and metadata.
 
@@ -133,24 +133,24 @@ def convert_examples_to_dataset(
 
 
 def iter_chunk_convert_examples_to_dataset(
-    task, examples: list, tokenizer, feat_spec: FeaturizationSpec, phase: str, verbose=False
+        task, examples: list, tokenizer, feat_spec: FeaturizationSpec, phase: str, verbose=False
 ):
     for i, data_row in enumerate(
-        iter_chunk_tokenize_and_featurize(
-            task=task,
-            examples=examples,
-            tokenizer=tokenizer,
-            feat_spec=feat_spec,
-            phase=phase,
-            verbose=verbose,
-        )
+            iter_chunk_tokenize_and_featurize(
+                task=task,
+                examples=examples,
+                tokenizer=tokenizer,
+                feat_spec=feat_spec,
+                phase=phase,
+                verbose=verbose,
+            )
     ):
         metadata = {"example_id": i}
         yield {"data_row": data_row, "metadata": metadata}
 
 
 def tokenize_and_featurize(
-    task, examples: list, tokenizer, feat_spec: FeaturizationSpec, phase, verbose=False
+        task, examples: list, tokenizer, feat_spec: FeaturizationSpec, phase, verbose=False
 ):
     """Create list of DataRows containing tokenized and featurized examples.
 
@@ -179,14 +179,17 @@ def tokenize_and_featurize(
             )
     else:
         data_rows = [
-            example.tokenize(tokenizer, task=task).featurize(tokenizer, feat_spec)
+            # TODO @mikimn: Remove quickfix
+            (example.tokenize(tokenizer,
+                              task=task) if 'task' in example.tokenize.__code__.co_varnames else example.tokenize(
+                tokenizer)).featurize(tokenizer, feat_spec)
             for example in maybe_tqdm(examples, desc="Tokenizing", verbose=verbose)
         ]
     return data_rows
 
 
 def iter_chunk_tokenize_and_featurize(
-    task, examples: list, tokenizer, feat_spec: FeaturizationSpec, phase, verbose=False
+        task, examples: list, tokenizer, feat_spec: FeaturizationSpec, phase, verbose=False
 ):
     """Generator of DataRows containing tokenized and featurized examples.
 
