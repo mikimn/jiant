@@ -152,6 +152,9 @@ class Task:
     @classmethod
     def collate_fn(cls, batch):
         # cls.collate_fn
+        print(cls.Batch)
+        print(list(cls.Batch.__dataclass_fields__))
+        print(list(cls.Batch.get_annotations().keys()))
         elem = batch[0]
         if isinstance(elem, Mapping):  # dict
             assert set(elem.keys()) == {"data_row", "metadata"}
