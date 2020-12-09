@@ -5,6 +5,7 @@ from typing import Generator, Union, Sequence
 
 import torch
 import torch.utils.data.dataset
+from tqdm import tqdm
 
 
 class Chunker:
@@ -201,9 +202,10 @@ class ChunkedFilesDataCache(DataCache):
             del chunk
         return result
 
-    def get_all(self):
+    def get_all(self, verbose=False):
         data = []
-        for i in range(self.num_chunks):
+        t = tqdm(range(self.num_chunks), disable=not verbose, desc=f'Loading Chunks')
+        for i in t:
             data += list(self.load_chunk(i))
         return data
 

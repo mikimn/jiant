@@ -5,6 +5,7 @@ from dataclasses import dataclass
 
 import torch
 import torch.utils.data.dataloader as dataloader
+import typing
 
 from jiant.utils.python.datastructures import ExtendedDataClassMixin, combine_dicts
 
@@ -152,9 +153,6 @@ class Task:
     @classmethod
     def collate_fn(cls, batch):
         # cls.collate_fn
-        print(cls.Batch)
-        print(list(cls.Batch.__dataclass_fields__))
-        print(list(cls.Batch.get_annotations().keys()))
         elem = batch[0]
         if isinstance(elem, Mapping):  # dict
             assert set(elem.keys()) == {"data_row", "metadata"}
@@ -167,7 +165,8 @@ class Task:
             collated_metadata = metadata_collate_fn(metadata)
             combined = combine_dicts([collated_data_rows, collated_metadata])
             batch_dict = {}
-            for field, field_type in cls.Batch.get_annotations().items():
+            # TODO @mikimn: Raise issue - get_type_annotations does not work for inherited data classes
+            for field, field_type in typing.get_type_hints(cls.Batch).items():
                 batch_dict[field] = combined.pop(field)
                 if field_type == torch.FloatTensor:
                     # Ensure that floats stay as float32
