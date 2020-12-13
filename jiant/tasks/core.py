@@ -1,11 +1,11 @@
-import numpy as np
-from typing import NamedTuple, Mapping, Dict
-from enum import Enum
+import typing
 from dataclasses import dataclass
+from enum import Enum
+from typing import NamedTuple, Mapping, Dict
 
+import numpy as np
 import torch
 import torch.utils.data.dataloader as dataloader
-import typing
 
 from jiant.utils.python.datastructures import ExtendedDataClassMixin, combine_dicts
 
@@ -45,7 +45,12 @@ class BatchMixin(ExtendedDataClassMixin):
         # noinspection PyArgumentList
         return self.__class__(
             **{
-                k: self._val_to_device(v=v, device=device, non_blocking=non_blocking, copy=copy,)
+                k: self._val_to_device(
+                    v=v,
+                    device=device,
+                    non_blocking=non_blocking,
+                    copy=copy,
+                )
                 for k, v in self.to_dict().items()
             }
         )
@@ -106,7 +111,11 @@ class BatchTuple(NamedTuple):
 
     def to(self, device, non_blocking=False, copy=False):
         return BatchTuple(
-            batch=self.batch.to(device=device, non_blocking=non_blocking, copy=copy,),
+            batch=self.batch.to(
+                device=device,
+                non_blocking=non_blocking,
+                copy=copy,
+            ),
             metadata=self.metadata,
         )
 
@@ -137,6 +146,10 @@ class Task:
     def __init__(self, name: str, path_dict: dict):
         self.name = name
         self.path_dict = path_dict
+        # TODO @mikimn: Remove quickfix
+        # base_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../..')
+        # base_dir = os.path.abspath(base_dir)
+        # self.base_path = base_dir
 
     @property
     def train_path(self):
@@ -165,7 +178,8 @@ class Task:
             collated_metadata = metadata_collate_fn(metadata)
             combined = combine_dicts([collated_data_rows, collated_metadata])
             batch_dict = {}
-            # TODO @mikimn: Raise issue - get_type_annotations does not work for inherited data classes
+            # TODO @mikimn: Raise issue - get_type_annotations
+            #  does not work for inherited data classes
             for field, field_type in typing.get_type_hints(cls.Batch).items():
                 batch_dict[field] = combined.pop(field)
                 if field_type == torch.FloatTensor:
